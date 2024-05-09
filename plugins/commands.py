@@ -10,7 +10,7 @@ from pyrogram.errors import ChatAdminRequired, FloodWait, ButtonDataInvalid
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from database.ia_filterdb import Media, get_file_details, unpack_new_file_id, delete_files
 from database.users_chats_db import db
-from info import INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, TUTORIAL, SHORTLINK_API, SHORTLINK_URL, AUTH_CHANNEL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, PROTECT_CONTENT, IS_STREAM, IS_FSUB, PAYMENT_QR, OWNER_USERNAME, REACTIONS, PM_DELETE_TIME as pm_delete_time
+from info import INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, TUTORIAL, SHORTLINK_API, SHORTLINK_URL, AUTH_CHANNEL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, PROTECT_CONTENT, IS_STREAM, IS_FSUB, PAYMENT_QR, OWNER_USERNAME, REACTIONS, PM_DELETE_TIME as pm_delete_time, AUTO_FILTER, PROTECT_CONTENT, IMDB, SPELL_CHECK, AUTO_DELETE, WELCOME, WELCOME_TEXT, IMDB_TEMPLATE, FILE_CAPTION, SHORTLINK, LINK_MODE, 
 from utils import get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds
 import re
 import json
@@ -120,7 +120,29 @@ async def start(client, message):
     else:
         pass
 
-    settings = await get_settings(int(mc.split("_", 2)[1]))
+    groupid = int(mc.split("_", 2)[1])
+    if not groupid.startswith("-100"):
+         settings = {
+            'auto_filter': AUTO_FILTER,
+            'file_secure': PROTECT_CONTENT,
+            'imdb': IMDB,
+            'spell_check': SPELL_CHECK,
+            'auto_delete': AUTO_DELETE,
+            'welcome': WELCOME,
+            'welcome_text': WELCOME_TEXT,
+            'template': IMDB_TEMPLATE,
+            'caption': FILE_CAPTION,
+            'url': SHORTLINK_URL,
+            'api': SHORTLINK_API,
+            'shortlink': SHORTLINK,
+            'tutorial': TUTORIAL,
+            'links': LINK_MODE,
+            'fsub': AUTH_CHANNEL,
+            'is_stream': IS_STREAM,
+            'is_fsub': IS_FSUB
+        }
+    else:
+        settings = await get_settings(groupid)
     if settings.get('is_fsub', IS_FSUB) and not await db.has_premium_access(message.from_user.id):
         btn = await is_subscribed(client, message, settings['fsub'])
         if btn:
@@ -141,7 +163,13 @@ async def start(client, message):
         files = temp.FILES.get(key)
         if not files:
             return await message.reply('No Such All Files Exist!')
-        settings = await get_settings(int(grp_id))
+        if not grp_id.startswith("-100"):
+            settings = {
+                'caption': FILE_CAPTION,
+                'is_stream': IS_STREAM
+        }
+        else:
+            settings = await get_settings(grp_id)
         file_ids = []
         fileids = ""
         for file in files:
@@ -188,12 +216,33 @@ async def start(client, message):
         await vp.edit("Tʜᴇ ғɪʟᴇ ʜᴀs ʙᴇᴇɴ ɢᴏɴᴇ ! Cʟɪᴄᴋ ɢɪᴠᴇɴ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪᴛ ᴀɢᴀɪɴ.", reply_markup=InlineKeyboardMarkup(btns))
         return
 
-    type_, grp_id, file_id = mc.split("_", 2)
+    type_, grp_id, file_id, is_pm = mc.split("_", 2)
     files_ = await get_file_details(file_id)
     if not files_:
         return await message.reply('No Such File Exist!')
     files = files_[0]
-    settings = await get_settings(int(grp_id))
+    if not grp_id.startswith("-100"):
+        settings = {
+            'auto_filter': AUTO_FILTER,
+            'file_secure': PROTECT_CONTENT,
+            'imdb': IMDB,
+            'spell_check': SPELL_CHECK,
+            'auto_delete': AUTO_DELETE,
+            'welcome': WELCOME,
+            'welcome_text': WELCOME_TEXT,
+            'template': IMDB_TEMPLATE,
+            'caption': FILE_CAPTION,
+            'url': SHORTLINK_URL,
+            'api': SHORTLINK_API,
+            'shortlink': SHORTLINK,
+            'tutorial': TUTORIAL,
+            'links': LINK_MODE,
+            'fsub': AUTH_CHANNEL,
+            'is_stream': IS_STREAM,
+            'is_fsub': IS_FSUB
+        }
+    else:
+        settings = await get_settings(grp_id)
     if type_ != 'shortlink' and settings['shortlink']:
         if not await db.has_premium_access(message.from_user.id):
             link = await get_shortlink(settings['url'], settings['api'], f"https://t.me/{temp.U_NAME}?start=shortlink_{grp_id}_{file_id}")
