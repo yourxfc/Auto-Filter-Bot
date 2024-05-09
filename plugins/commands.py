@@ -120,7 +120,7 @@ async def start(client, message):
     else:
         pass
 
-    groupid = int(mc.split("_", 2)[1])
+    groupid = mc.split("_", 2)[1]
     if not groupid.startswith("-100"):
          settings = {
             'auto_filter': AUTO_FILTER,
