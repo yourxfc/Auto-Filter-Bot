@@ -29,9 +29,7 @@ async def pm_search(client, message):
     ]]
     reply_markup=InlineKeyboardMarkup(btn)
     if await db.get_pm_search_status(bot_id):
-        if 'hindi' in message.text.lower() or 'tamil' in message.text.lower() or 'telugu' in message.text.lower() or 'malayalam' in message.text.lower() or 'kannada' in message.text.lower() or 'english' in message.text.lower() or 'gujarati' in message.text.lower(): 
-            return await auto_filter(client, message)
-        await auto_filter(client, message)
+        await auto_filter(client, message, group=False)
     else:
         if int(total) != 0:
             await message.reply_text(f'<b><i>🤗 ᴛᴏᴛᴀʟ <code>{total}</code> ʀᴇꜱᴜʟᴛꜱ ꜰᴏᴜɴᴅ ɪɴ ᴛʜɪꜱ ɢʀᴏᴜᴘ 👇</i></b>', reply_markup=reply_markup)
@@ -406,11 +404,11 @@ async def cb_handler(client: Client, query: CallbackQuery):
             pass
   
     if query.data.startswith("file"):
-        ident, file_id = query.data.split("#")
+        ident, file_id, is_pm = query.data.split("#")
         user = query.message.reply_to_message.from_user.id
         if int(user) != 0 and query.from_user.id != int(user):
             return await query.answer(f"Hello {query.from_user.first_name},\nDon't Click Other Results!", show_alert=True)
-        await query.answer(url=f"https://t.me/{temp.U_NAME}?start=file_{query.message.chat.id}_{file_id}")
+        await query.answer(url=f"https://t.me/{temp.U_NAME}?start=file_{query.message.chat.id}_{file_id}_{is_pm}")
 
     elif query.data.startswith("stream"):
         file_id = query.data.split('#', 1)[1]
@@ -901,10 +899,29 @@ async def cb_handler(client: Client, query: CallbackQuery):
         await vp.edit("Tʜᴇ ғɪʟᴇs ʜᴀs ʙᴇᴇɴ ɢᴏɴᴇ ! Cʟɪᴄᴋ ɢɪᴠᴇɴ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪᴛ ᴀɢᴀɪɴ.", reply_markup=InlineKeyboardMarkup(btns))
         return
 
-async def auto_filter(client, msg, spoll=False):
+async def auto_filter(client, msg, spoll=False, group=True):
+    if not group:
+        settings = {
+            'auto_filter': AUTO_FILTER,
+            'file_secure': PROTECT_CONTENT,
+            'imdb': IMDB,
+            'spell_check': SPELL_CHECK,
+            'auto_delete': AUTO_DELETE,
+            'template': IMDB_TEMPLATE,
+            'caption': FILE_CAPTION,
+            'url': SHORTLINK_URL,
+            'api': SHORTLINK_API,
+            'shortlink': SHORTLINK,
+            'tutorial': TUTORIAL,
+            'links': LINK_MODE
+        }
+    else:
+        if not spoll:
+            settings = await get_settings(msg.chat.id)
+        else:
+            settings = await get_settings(msg.message.chat.id)
     if not spoll:
         message = msg
-        settings = await get_settings(message.chat.id)
         search = message.text
         files, offset, total_results = await get_search_results(search)
         if not files:
@@ -912,7 +929,6 @@ async def auto_filter(client, msg, spoll=False):
                 await advantage_spell_chok(msg)
             return
     else:
-        settings = await get_settings(msg.message.chat.id)
         message = msg.message.reply_to_message  # msg will be callback query
         search, files, offset, total_results = spoll
     if spoll:
@@ -921,6 +937,7 @@ async def auto_filter(client, msg, spoll=False):
         await message.react(emoji="🔍")
     except:
         pass
+    is_pm = True if not group else False
     req = message.from_user.id if message.from_user else 0
     key = f"{message.chat.id}-{message.id}"
     temp.FILES[key] = files
@@ -930,10 +947,10 @@ async def auto_filter(client, msg, spoll=False):
     if settings['links']:
         btn = []
         for file_num, file in enumerate(files, start=1):
-            files_link += f"""<b>\n\n{file_num}. <a href=https://t.me/{temp.U_NAME}?start=file_{message.chat.id}_{file.file_id}>[{get_size(file.file_size)}] {file.file_name}</a></b>"""
+            files_link += f"""<b>\n\n{file_num}. <a href=https://t.me/{temp.U_NAME}?start=file_{message.chat.id}_{file.file_id}_{is_pm}>[{get_size(file.file_size)}] {file.file_name}</a></b>"""
     else:
         btn = [[
-            InlineKeyboardButton(text=f"📂 {get_size(file.file_size)} {file.file_name}", callback_data=f'file#{file.file_id}')
+            InlineKeyboardButton(text=f"📂 {get_size(file.file_size)} {file.file_name}", callback_data=f'file#{file.file_id}#{is_pm}')
         ]
             for file in files
         ]
@@ -959,12 +976,12 @@ async def auto_filter(client, msg, spoll=False):
     else:
         if settings['shortlink'] and not await db.has_premium_access(message.from_user.id):
             btn.insert(0,
-                [InlineKeyboardButton("♻️ sᴇɴᴅ ᴀʟʟ ♻️", url=await get_shortlink(settings['url'], settings['api'], f'https://t.me/{temp.U_NAME}?start=all_{message.chat.id}_{key}')),
+                [InlineKeyboardButton("♻️ sᴇɴᴅ ᴀʟʟ ♻️", url=await get_shortlink(settings['url'], settings['api'], f'https://t.me/{temp.U_NAME}?start=all_{message.chat.id}_{key}_{is_pm}')),
                 InlineKeyboardButton("🥇 ʙᴜʏ 🥇", url=f"https://t.me/{temp.U_NAME}?start=plans")]
             )
         else:
             btn.insert(0,
-                [InlineKeyboardButton("♻️ sᴇɴᴅ ᴀʟʟ ♻️", callback_data=f"send_all#{key}"),
+                [InlineKeyboardButton("♻️ sᴇɴᴅ ᴀʟʟ ♻️", callback_data=f"send_all#{key}#{req}"),
                 InlineKeyboardButton("🥇 ʙᴜʏ 🥇", url=f"https://t.me/{temp.U_NAME}?start=plans")]
             )
         btn.append(
