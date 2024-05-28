@@ -4,6 +4,7 @@ import re
 from time import time as time_now
 import ast
 import math
+from urllib.parse import quote_plus
 from pyrogram.errors.exceptions.bad_request_400 import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
 from Script import script
 from datetime import datetime, timedelta
@@ -12,7 +13,7 @@ from info import ADMINS, URL, MAX_BTN, BIN_CHANNEL, IS_STREAM, DELETE_TIME, FILM
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ChatPermissions
 from pyrogram import Client, filters, enums
 from pyrogram.errors import MessageNotModified
-from utils import get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_verify_status, update_verify_status, get_readable_time, get_poster, temp, get_settings, save_group_settings
+from utils import get_size, is_subscribed, is_check_admin, get_wish, get_shortlink, get_verify_status, update_verify_status, get_readable_time, get_poster, temp, get_settings, save_group_settings, get_name, get_hash
 from database.users_chats_db import db
 from database.ia_filterdb import Media, get_file_details, get_search_results,delete_files
 
@@ -422,19 +423,20 @@ async def cb_handler(client: Client, query: CallbackQuery):
         await query.message.delete()
         
     elif query.data.startswith("stream"):
-        file_id = query.data.split('#', 1)[1]
-        msg = await client.send_cached_media(chat_id=BIN_CHANNEL, file_id=file_id)
-        watch = f"{URL}watch/{msg.id}"
-        download = f"{URL}download/{msg.id}"
-        btn=[[
-            InlineKeyboardButton("ᴡᴀᴛᴄʜ ᴏɴʟɪɴᴇ", url=watch),
+        ident, file_unique_id = query.data.split("#")
+        msg = await client.send_cached_media(
+            chat_id=BIN_CHANNEL,
+            file_id=file_unique_id)
+        online = f"{URL}watch/{str(msg.id)}/{quote_plus(get_name(msg))}?hash={get_hash(msg)}"
+        download = f"{URL}/{str(msg.id)}/{quote_plus(get_name(msg))}?hash={get_hash(msg)}"
+        btn= [[
+            InlineKeyboardButton("ᴡᴀᴛᴄʜ ᴏɴʟɪɴᴇ", url=online),
             InlineKeyboardButton("ꜰᴀsᴛ ᴅᴏᴡɴʟᴏᴀᴅ", url=download)
         ],[
             InlineKeyboardButton('❌ ᴄʟᴏsᴇ ❌', callback_data='close_data')
         ]]
-        reply_markup=InlineKeyboardMarkup(btn)
         await query.edit_message_reply_markup(
-            reply_markup=reply_markup
+            reply_markup=InlineKeyboardMarkup(btn)
         )
     
     elif query.data == "get_trail":
