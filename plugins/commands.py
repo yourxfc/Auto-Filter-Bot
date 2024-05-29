@@ -14,7 +14,7 @@ from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from database.ia_filterdb import Media, get_file_details, unpack_new_file_id, delete_files
 from database.users_chats_db import db
-from info import INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, TUTORIAL, SHORTLINK_API, SHORTLINK_URL, AUTH_CHANNEL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, PROTECT_CONTENT, IS_STREAM, PAYMENT_QR, OWNER_USERNAME, REACTIONS, PM_FILE_DELETE_TIME
+from info import INDEX_CHANNELS, ADMINS, IS_VERIFY, VERIFY_TUTORIAL, VERIFY_EXPIRE, TUTORIAL, SHORTLINK_API, SHORTLINK_URL, DELETE_TIME, SUPPORT_LINK, UPDATES_LINK, LOG_CHANNEL, PICS, PROTECT_CONTENT, IS_STREAM, PAYMENT_QR, OWNER_USERNAME, REACTIONS, PM_FILE_DELETE_TIME, OWNER_UPI_ID
 from utils import get_settings, get_size, is_subscribed, is_check_admin, get_shortlink, get_verify_status, update_verify_status, save_group_settings, temp, get_readable_time, get_wish, get_seconds
 
 @Client.on_message(filters.command("start") & filters.incoming)
@@ -33,7 +33,7 @@ async def start(client, message):
         wish = get_wish()
         btn = [[
             InlineKeyboardButton('⚡️ ᴜᴘᴅᴀᴛᴇs ᴄʜᴀɴɴᴇʟ ⚡️', url=UPDATES_LINK),
-            InlineKeyboardButton('💡 Support Group 💡', url=SUPPORT_LINK)
+            InlineKeyboardButton('💡 sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ 💡', url=SUPPORT_LINK)
         ]]
         if message.from_user:
             await message.reply(text=f"<b>ʜᴇʏ {message.from_user.mention}, <i>{wish}</i>\nʜᴏᴡ ᴄᴀɴ ɪ ʜᴇʟᴘ ʏᴏᴜ??</b>", reply_markup=InlineKeyboardMarkup(btn))
@@ -53,16 +53,14 @@ async def start(client, message):
         buttons = [[
             InlineKeyboardButton("+ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ +", url=f'http://t.me/{temp.U_NAME}?startgroup=start')
         ],[
-            InlineKeyboardButton('🔎 sᴇᴀʀᴄʜ ɪɴʟɪɴᴇ 🔍', switch_inline_query_current_chat='')
-        ],[
-            InlineKeyboardButton('⚡️ ᴜᴘᴅᴀᴛᴇs ᴄʜᴀɴɴᴇʟ ⚡️', url=UPDATES_LINK),
-            InlineKeyboardButton('💡 Support Group 💡', url=SUPPORT_LINK)
+            InlineKeyboardButton('ℹ️ ᴜᴘᴅᴀᴛᴇs', url=UPDATES_LINK),
+            InlineKeyboardButton('🧑‍💻 sᴜᴘᴘᴏʀᴛ', url=SUPPORT_LINK)
         ],[
             InlineKeyboardButton('👨‍🚒 ʜᴇʟᴘ', callback_data='help'),
-            InlineKeyboardButton('📚 ᴀʙᴏᴜᴛ', callback_data='my_about'),
-            InlineKeyboardButton('👤 ᴏᴡɴᴇʀ', callback_data='my_owner')
+            InlineKeyboardButton('🔎 sᴇᴀʀᴄʜ ɪɴʟɪɴᴇ', switch_inline_query_current_chat=''),
+            InlineKeyboardButton('📚 ᴀʙᴏᴜᴛ', callback_data='about')
         ],[
-            InlineKeyboardButton('💰 ᴇᴀʀɴ ᴍᴏɴᴇʏ ʙʏ ʙᴏᴛ 💰', callback_data='earn')
+            InlineKeyboardButton('💰 ᴇᴀʀɴ ᴜɴʟɪᴍɪᴛᴇᴅ ᴍᴏɴᴇʏ ʙʏ ʙᴏᴛ 💰', callback_data='earn')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply_photo(
@@ -81,7 +79,7 @@ async def start(client, message):
         reply_markup = InlineKeyboardMarkup(btn)
         await message.reply_photo(
             photo=PAYMENT_QR,
-            caption="**Pʀᴇᴍɪᴜᴍ Fᴇᴀᴛᴜʀᴇs 🎁\n\n☆ No Need To Verify\n☆ Ad Free Experience\n☆ Unlimited Movie And Series",
+            caption=script.PREMIUM_PLAN_TEXT.format(OWNER_UPI_ID),
             reply_markup=reply_markup
         )
         return
@@ -584,15 +582,16 @@ async def remove_premium_cmd_handler(client, message):
         await message.reply_text("Usage: /remove_premium user_id")
         
 @Client.on_message(filters.command("plan"))
-async def plans_cmd_handler(client, message):
-    btn = [            
-        [InlineKeyboardButton("ꜱᴇɴᴅ ᴘᴀʏᴍᴇɴᴛ ʀᴇᴄᴇɪᴘᴛ 🧾", url=OWNER_USERNAME)],
-        [InlineKeyboardButton("⚠️ ᴄʟᴏsᴇ / ᴅᴇʟᴇᴛᴇ ⚠️", callback_data="close_data")]
-    ]
+async def plans_list(client, message):
+    btn = [[
+        InlineKeyboardButton("ꜱᴇɴᴅ ᴘᴀʏᴍᴇɴᴛ ʀᴇᴄᴇɪᴘᴛ 🧾", url=OWNER_USERNAME)
+    ],[
+        InlineKeyboardButton("⚠️ ᴄʟᴏsᴇ / ᴅᴇʟᴇᴛᴇ ⚠️", callback_data="close_data")
+    ]]
     reply_markup = InlineKeyboardMarkup(btn)
     await message.reply_photo(
         photo=PAYMENT_QR,
-        caption="**Pʀᴇᴍɪᴜᴍ Fᴇᴀᴛᴜʀᴇs 🎁\n\n☆ No Need To Verify\n☆ Ad Free Experience\n☆ Unlimited Movie And Series",
+        caption=script.PREMIUM_PLAN_TEXT.format(OWNER_UPI_ID),
         reply_markup=reply_markup
     )
         
@@ -678,9 +677,9 @@ async def remove_fsub(client, message):
         return await message.reply_text("Use this command in group.")
     if not await is_check_admin(client, grp_id, user_id):
         return await message.reply_text('You not admin in this group.')
-    if settings['fsub'] == "":
+    if not settings['fsub']:
         await query.answer("ʏᴏᴜ ᴅɪᴅɴ'ᴛ ᴀᴅᴅᴇᴅ ᴀɴʏ ꜰᴏʀᴄᴇ sᴜʙsᴄʀɪʙᴇ ᴄʜᴀɴɴᴇʟ...", show_alert=True)
         return
-    await save_group_settings(grp_id, 'fsub', "")
+    await save_group_settings(grp_id, 'fsub', None)
     await message.reply_text("<b>Successfully removed your force channel id...</b>")
 
