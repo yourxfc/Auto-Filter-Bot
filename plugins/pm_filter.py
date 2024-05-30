@@ -884,6 +884,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             await query.message.reply('Nothing to kick deleted accounts.')
 
 async def auto_filter(client, msg, s, spoll=False):
+    remaining_seconds = time_now()
     if not spoll:
         message = msg
         settings = await get_settings(message.chat.id)
@@ -981,13 +982,12 @@ async def auto_filter(client, msg, s, spoll=False):
             **locals()
         )
     else:
-        cap = f"<b>✅ Search Results:- {search}\n🦹 Requested By:- {message.from_user.mention}\n🦉 Result Show In:- {remaining_seconds} Seconds\n⚡ Powered By:- {message.chat.title} \n🎬 Total File Found :- {total_results} \n♻️ Message Delete In 5 Minutes ⚠️\n\n</b>"
+        cap = f"<b>✅ Search Results:- {search}\n🦹 Requested By:- {message.from_user.mention}\n🦉 Result Show In:- {get_readable_time(remaining_seconds-time_now()} Seconds\n⚡ Powered By:- {message.chat.title} \n🎬 Total File Found :- {total_results} \n♻️ Message Delete In 5 Minutes ⚠️\n\n</b>"
         cap+="<b><u>🍿 Your Movie Files 👇</u></b>\n\n"
-    del_msg = f"\n\n<b>⚠️ ᴛʜɪs ᴍᴇssᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏ ᴅᴇʟᴇᴛᴇ ᴀꜰᴛᴇʀ <code>{get_readable_time(DELETE_TIME)}</code> ᴛᴏ ᴀᴠᴏɪᴅ ᴄᴏᴘʏʀɪɢʜᴛ ɪssᴜᴇs</b>" if settings["auto_delete"] else ''
     if imdb and imdb.get('poster'):
         await s.delete()
         try:
-            k = await message.reply_photo(photo=imdb.get('poster'), caption=cap[:1024] + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn))
+            k = await message.reply_photo(photo=imdb.get('poster'), caption=cap[:1024] + files_link, reply_markup=InlineKeyboardMarkup(btn))
             if settings["auto_delete"]:
                 await asyncio.sleep(DELETE_TIME)
                 await k.delete()
@@ -998,7 +998,7 @@ async def auto_filter(client, msg, s, spoll=False):
         except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
             pic = imdb.get('poster')
             poster = pic.replace('.jpg', "._V1_UX360.jpg")
-            k = await message.reply_photo(photo=poster, caption=cap[:1024] + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn))
+            k = await message.reply_photo(photo=poster, caption=cap[:1024] + files_link, reply_markup=InlineKeyboardMarkup(btn))
             if settings["auto_delete"]:
                 await asyncio.sleep(DELETE_TIME)
                 await k.delete()
@@ -1007,7 +1007,7 @@ async def auto_filter(client, msg, s, spoll=False):
                 except:
                     pass
         except Exception as e:
-            k = await message.reply_text(cap + files_link + del_msg, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=True)
+            k = await message.reply_text(cap + files_link, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=True)
             if settings["auto_delete"]:
                 await asyncio.sleep(DELETE_TIME)
                 await k.delete()
