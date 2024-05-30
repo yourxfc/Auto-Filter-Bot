@@ -982,7 +982,7 @@ async def auto_filter(client, msg, s, spoll=False):
             **locals()
         )
     else:
-        cap = f"<b>✅ Search Results:- {search}\n🦹 Requested By:- {message.from_user.mention}\n🦉 Result Show In:- {get_readable_time(remaining_seconds-time_now()} Seconds\n⚡ Powered By:- {message.chat.title} \n🎬 Total File Found :- {total_results} \n♻️ Message Delete In 5 Minutes ⚠️\n\n</b>"
+        cap = f"<b>✅ Search Results:- {search}\n🦹 Requested By:- {message.from_user.mention}\n🦉 Result Show In:- {get_readable_time(remaining_seconds-time_now())} Seconds\n⚡ Powered By:- {message.chat.title} \n🎬 Total File Found :- {total_results} \n♻️ Message Delete In 5 Minutes ⚠️\n\n</b>"
         cap+="<b><u>🍿 Your Movie Files 👇</u></b>\n\n"
     if imdb and imdb.get('poster'):
         await s.delete()
